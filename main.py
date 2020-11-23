@@ -67,6 +67,7 @@ def backward_propagate_error(network, expected):
 
 # Update network weights with error
 # |upatethaeasfd
+# |asjdhbfjkba fdkjasdfgkj dkjasbgk a
 def update_weights(network, row, l_rate):
     for i in range(len(network)):
         inputs = row[:-1]
