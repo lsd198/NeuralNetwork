@@ -13,7 +13,7 @@ def initialize_network(n_inputs, n_hidden, n_outputs):
     return network
 
 
-# Calculate neuron activation for an input
+# Calculate neuron activation for  an input
 def activate(weights, inputs):
     activation = weights[-1]
     for i in range(len(weights) - 1):
@@ -48,6 +48,7 @@ def transfer_derivative(output):
 def backward_propagate_error(network, expected):
     for i in reversed(range(len(network))):
         layer = network[i]
+
         errors = list()
         if i != len(network) - 1:
             for j in range(len(layer)):
@@ -65,6 +66,7 @@ def backward_propagate_error(network, expected):
 
 
 # Update network weights with error
+# |upatethaeasfd
 def update_weights(network, row, l_rate):
     for i in range(len(network)):
         inputs = row[:-1]
