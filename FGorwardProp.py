@@ -7,20 +7,20 @@ from math import exp
 
 def initialize_network(data, n_out, n_hidden, n_neuron, split):
     len_row_data = len(data)
-    wt_hl = [[random() for i in range(n_neuron + 1)] for i in range(n_hidden)]
+    wt_hl = [[[random() for i in range(len(data.columns))] for j in range(n_neuron)] for k in range(n_hidden)]
+    # wt_hl = [[random() for i in range(n_neuron + 1)] for i in range(n_hidden)]
     wt_ne = [[random() for i in range(n_neuron)] for i in range(n_out)]
     data.insert(max(data.columns.unique()), max(data.columns.unique()) + 1, [1] * 210)
-    target_data = pd.Series.to_list((data[len(data.columns)-2]))
-    data.drop([len(data.columns)-2], axis='columns', inplace=True)
+    target_data = pd.Series.to_list((data[len(data.columns) - 2]))
+    data.drop([len(data.columns) - 2], axis='columns', inplace=True)
     dataset = data.copy()
     ttdata = split_traintest(dataset, split)
-    sumprod(ttdata[0], wt_hl, n_out,n_hidden, n_neuron)
-
+    sumprod(ttdata[0], wt_hl, n_out, n_hidden, n_neuron)
 
 
 def split_traintest(dataset, split):
     a = 0
-    i=0
+    i = 0
     if int(len(dataset) % split) != 0:
         a = int((dataset % split))
     data_size = int(len(dataset) - a)
@@ -35,12 +35,18 @@ def split_traintest(dataset, split):
     return split_data
 
 
-def sumprod(tr_data, wt_hl, n_out,n_hidden, n_neuron):
-    error=[]
-    sum_act=[]
+def sumprod(tr_data, wt_hl, n_out, n_hidden, n_neuron):
+    error = []
+    sum_act = []
+    falg=0
     for i in range(len(tr_data)):
-        for i in range()
-
+        ar1 = np.array(list(tr_data.iloc[i]))
+        for l in range(n_hidden):
+            for k in range(n_neuron):
+                ar2 = np.array(wt_hl[l][k])
+                arr3 = ar1 * ar2
+                sum_act.append(sum(arr3))
+            ar1=np.array(sum_act)
 
 
 
