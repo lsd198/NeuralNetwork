@@ -7,20 +7,23 @@ from math import exp
 
 def initialize_network(data, n_out, n_hidden, n_neuron, split):
     len_row_data = len(data)
+    np.random.seed(121)
     wt_hl = [[[random() for i in range(len(data.columns))] for j in range(n_neuron)] for k in range(n_hidden)]
-    wt_ne = [[random() for i in range(n_neuron)] for i in range(n_out)]
-    target_data = data[len(data.columns)-1]
+    wt_ne = [[random() for i in range(n_neuron + 1)] for i in range(n_out)]
+    target_data = split_traintest(data[len(data.columns) - 1], split)
+    error_val = list(data[len(data.columns) - 1].unique())
+    error_val.sort()
     data.drop([len(data.columns) - 1], axis='columns', inplace=True)
-    data.insert(len(data.columns), len(data.columns), [1] * 210)
-    ttdata = split_traintest(data, split)
-    sumprod(nor_data(ttdata[0]), wt_hl, wt_ne, n_out, n_hidden, n_neuron)
+    ttdata = split_traintest(nor_data(data), split)
+    sumprod(ttdata[0], wt_hl, wt_ne, n_out, n_hidden, n_neuron, error_val,target_data[0])
 
 
 def nor_data(dataset):
-    newdata=pd.DataFrame()
+    newdata = pd.DataFrame()
     for row in dataset:
-        newdata.insert(row, row, (dataset[row] - dataset[row].min())/ (dataset[row].max() - dataset[row].min()))
+        newdata.insert(row, row, (dataset[row] - dataset[row].min()) / (dataset[row].max() - dataset[row].min()))
     return newdata
+
 
 def split_traintest(dataset, split):
     a = 0
@@ -39,40 +42,65 @@ def split_traintest(dataset, split):
     return split_data
 
 
-def sumprod(tr_data, wt_hl, wt_ne, n_out, n_hidden, n_neuron):
-    error = []
+def sumprod(tr_data, wt_hl, wt_ne, n_out, n_hidden, n_neuron, error_val,target_data):
+    # error = pd.DataFrame(,)
+    err_final=[]
     sum_act = []
     flag = 0
+    # Belo loop will run for total len of dataset
     for i in range(len(tr_data)):
         ar1 = np.array(list(tr_data.iloc[i]))
+        # Below loop will run for total number of hidden layer that we have
         for l in range(n_hidden + 1):
             if flag <= (n_hidden - 1):
                 sum_act.clear()
-                for k in range(n_neuron+1):
+                # Below code will run for total number of neuron that we have in the hidden layer
+                for k in range(n_neuron):
                     ar2 = np.array(wt_hl[l][k])
-                    arr3 = ar1 * ar2
-                    sum_act.append(sum(arr3))
+                    arr3 = ar1 * ar2[0:len(ar2) - 1]
+                    sum_act.append(sum(arr3) + ar2[-1])
                 ar1 = np.array(sum_act)
                 flag = flag + 1
             else:
+                # This else part will run only for the final layer that we have  in the network
                 sum_act.clear()
+                output = []
                 for m in range(len(wt_ne)):
                     ar2 = np.array(wt_ne[m])
-                    arr3 = sum(ar1 * ar2)
-                    arr4 = 1 / (1 + np.exp(-arr3))
-                    sum_act.append(arr3)
-                errorcal(sum_act)
+                    arr3 = sum(ar1 * ar2[len(ar2) - 1]) + ar2[-1]
+                    output.append(1 / (1 + exp(-arr3)))
+                flag = 0
+                errorcal(i, output, error_val,target_data,err_final)
 
 
 def sep_target(ttdata):
-    tg=[]
+    tg = []
     for val in ttdata:
         for row in val:
-            if row == len(val.columns)-1:
+            if row == len(val.columns) - 1:
                 tg.append(val[row])
     return tg
-def errorcal(arr4):
-    print('')
+
+
+def errorcal(i, output, error_val,target_data,err_final):
+    e_list=[]
+    diff_list=[]
+    for val in error_val:
+        if val == target_data[i]:
+            e_list.append(1)
+        else:
+            e_list.append(0)
+    for l1,l2 in zip(e_list,output):
+        diff_list.append((l1-l2)*(l1-l2))
+    err_final.append(sum(diff_list))
+
+
+
+
+
+
+
+
 
 def remove_target(ttdata):
     print('')
@@ -95,7 +123,7 @@ def fileupload(filename):
     return dataset
 
 
-seed(121)
+
 data = fileupload('datafile.csv')
 data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
 initialize_network(data, n_out=len(data[len(data.columns) - 1].unique()), n_hidden=5, n_neuron=7, split=3)

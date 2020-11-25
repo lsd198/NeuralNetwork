@@ -4,7 +4,7 @@ from random import randrange
 from random import random
 from csv import reader
 from math import exp
-
+import numpy as np
 
 # Load a CSV file
 def load_csv(filename):
