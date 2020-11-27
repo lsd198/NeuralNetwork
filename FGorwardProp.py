@@ -103,13 +103,12 @@ def remove_target(ttdata):
     print('')
 
 
-def backward_propagation():
+def backward_propagation(weight):
     print('dasf')
 
 
 def delta_cal():
     print('adsf')
-
 
 def wt_update():
     print('asdf')
