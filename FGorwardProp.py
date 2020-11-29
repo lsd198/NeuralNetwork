@@ -1,4 +1,5 @@
 from random import random
+from random import randint
 from random import seed
 import numpy as np
 import pandas as pd
@@ -58,11 +59,12 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
                 # Below code will run for total number of neuron that we have in the hidden layer
                 for k in range(n_neuron):
                     ar2 = np.array(wt_hl[l][k])
-                    arr3 = ar1 * ar2[0:len(ar2) - 1]
-                    output_all_layer.append(arr3)
-                    sum_act.append(sum(arr3) + ar2[-1])
+                    arr3 = 1/(1+exp(-(sum((ar1 * ar2[0:len(ar2) - 1]))+ar2[-1])))
+                    sum_act.append(arr3)
                 ar1 = np.array(sum_act)
+                output_all_layer.append(list(ar1))
                 flag = flag + 1
+
             else:
                 # This else part will run only for the final layer that we have  in the network
                 sum_act.clear()
@@ -73,7 +75,8 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
                     output_final_layer.append(1 / (1 + exp(-arr3)))
                 flag = 0
                 errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
-    return output_final_layer,output_all_layer
+        op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
+        wt_ne = op_back
 
 
 def sep_target(ttdata):
@@ -103,8 +106,30 @@ def remove_target(ttdata):
     print('')
 
 
-def backward_propagation(weight):
-    print('dasf')
+def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer):
+    wt_ne_new = []
+    wt_hl_new = []
+    d_val = 0
+    delta_wt_layer = []
+    delta_wt = []
+    delta_all_h_layer = [[a*(1-a) for a in i] for i in output_all_layer]
+    output_all_layer_conv = np.array([i for i in output_all_layer])
+    wt_ne_conv = np.array([i for i in wt_ne])
+    wt_hl_conv = np.array([i for i in wt_hl])
+    delta_neuron = (np.array(err_op_neuron)*np.array(output_final_layer)*(1-np.array(output_final_layer))).reshape(len(output_final_layer), )
+
+    # if i == len(wt_hl)-1:
+    #     a = wt_ne
+    # else:
+    #     a = wt_hl
+    for h_layer in reversed(range(len(wt_hl))):
+        for h_neuron in range(len(wt_hl[0])):
+                delta_wt.append(sum(delta_neuron * wt_ne_conv[:, h_neuron])*output_all_layer_conv[h_layer-1][h_neuron]*delta_all_h_layer[h_layer][h_neuron])
+        delta_wt_layer.append(delta_wt)
+        delta_wt.clear()
+    return wt_ne
+
+
 
 
 def delta_cal():
@@ -117,10 +142,10 @@ def wt_update():
 def epoch(data, out, hidden, neuron, split, epochs):
     print('inside the function of epoch')
     init_op = initialize_network(data, out, hidden, neuron, split)
-    print('dasf')
+    train_dat = randint(1, 3)
     for i in range(epochs):
-        for_op=sumprod(init_op[5][0], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
-        backward_propagation(for_op[0])
+        sumprod(init_op[5][train_dat], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
+
     # return len_row_data, wt_hl, wt_ne, target_data, error_val, ttdata
     # return len_row_data, wt_hl, wt_ne, target_data, error_val, ttdata
     # for
