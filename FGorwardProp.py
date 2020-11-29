@@ -25,7 +25,7 @@ def nor_data(dataset):
     return newdata
 
 
-def split_traintest(dataset, split):
+def split_traintest(dataset,  split):
     a = 0
     i = 0
     if int(len(dataset) % split) != 0:
@@ -44,7 +44,7 @@ def split_traintest(dataset, split):
 
 def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
     # error = pd.DataFrame(,)
-    output_all_layer=[]
+    output_all_layer = []
     err_op_neuron = []
     err_total = []
     sum_act = []
@@ -59,7 +59,7 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
                 # Below code will run for total number of neuron that we have in the hidden layer
                 for k in range(n_neuron):
                     ar2 = np.array(wt_hl[l][k])
-                    arr3 = 1/(1+exp(-(sum((ar1 * ar2[0:len(ar2) - 1]))+ar2[-1])))
+                    arr3 = 1 / (1 + exp(-(sum((ar1 * ar2[0:len(ar2) - 1])) + ar2[-1])))
                     sum_act.append(arr3)
                 ar1 = np.array(sum_act)
                 output_all_layer.append(list(ar1))
@@ -107,33 +107,26 @@ def remove_target(ttdata):
 
 
 def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer):
-    wt_ne_new = []
-    wt_hl_new = []
-    d_val = 0
     delta_wt_layer = []
-    delta_wt = []
-    delta_all_h_layer = [[a*(1-a) for a in i] for i in output_all_layer]
+    delta_all_h_layer = [[a * (1 - a) for a in i] for i in output_all_layer]
     output_all_layer_conv = np.array([i for i in output_all_layer])
     wt_ne_conv = np.array([i for i in wt_ne])
-    wt_hl_conv = np.array([i for i in wt_hl])
-    delta_neuron = (np.array(err_op_neuron)*np.array(output_final_layer)*(1-np.array(output_final_layer))).reshape(len(output_final_layer), )
+    delta_neuron = (
+                np.array(err_op_neuron) * np.array(output_final_layer) * (1 - np.array(output_final_layer))).reshape(
+        len(output_final_layer), )
 
-    # if i == len(wt_hl)-1:
-    #     a = wt_ne
-    # else:
-    #     a = wt_hl
     for h_layer in reversed(range(len(wt_hl))):
         for h_neuron in range(len(wt_hl[0])):
-                delta_wt.append(sum(delta_neuron * wt_ne_conv[:, h_neuron])*output_all_layer_conv[h_layer-1][h_neuron]*delta_all_h_layer[h_layer][h_neuron])
-        delta_wt_layer.append(delta_wt)
-        delta_wt.clear()
-    return wt_ne
+            delta_wt_layer.append(
+                sum(delta_neuron * wt_ne_conv[:, h_neuron]) * output_all_layer_conv[h_layer - 1][h_neuron] *
+                delta_all_h_layer[h_layer][h_neuron])
 
-
+    return delta_wt_layer, delta_neuron, delta_all_h_layer
 
 
 def delta_cal():
     print('adsf')
+
 
 def wt_update():
     print('asdf')
@@ -146,11 +139,6 @@ def epoch(data, out, hidden, neuron, split, epochs):
     for i in range(epochs):
         sumprod(init_op[5][train_dat], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
 
-    # return len_row_data, wt_hl, wt_ne, target_data, error_val, ttdata
-    # return len_row_data, wt_hl, wt_ne, target_data, error_val, ttdata
-    # for
-    # sumprod(ttdata[0], wt_hl, wt_ne, n_out, n_hidden, n_neuron, error_val, target_data[0])
-
 
 def fileupload(filename):
     dataset = pd.read_csv(filename, header=None)
@@ -161,5 +149,4 @@ seed(1)
 data = fileupload('datafile.csv')
 data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
 epoch(data, len(data[len(data.columns) - 1].unique()), 5, 7, 3, 500)
-print('asdfasd')
 # below function will initilaize the initial weights for both the hidden neurons  and output layer neurons
