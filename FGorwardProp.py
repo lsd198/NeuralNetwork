@@ -76,6 +76,7 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
                 flag = 0
                 errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
         op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
+        wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.05)
         wt_ne = op_back
 
 
@@ -107,8 +108,9 @@ def remove_target(ttdata):
 
 
 def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer):
-    temp_wt = []
     temp_ne = []
+    temp_hl=[]
+    temp = []
     delta_all_h_layer = np.array([[a * (1 - a) for a in i] for i in output_all_layer])
     output_all_layer_conv = np.array([i for i in output_all_layer])
     wt_ne_conv = np.array([i for i in wt_ne])
@@ -121,26 +123,36 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
         for node in range(len(wt_hl[0])):
             for h_neuron in range(len(wt_hl[0])):
                 if h_layer == (len(wt_hl) - 1):
-                    temp_wt.append(
+                    temp.append(
                         sum(wt_ne_conv[:, node] * delta_neuron) * (output_all_layer_conv[h_layer - 1][h_neuron]) * (
                             delta_all_h_layer[h_layer][node]))
                 else:
-                    temp_wt.append(
+                    temp.append(
                         sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
                             output_all_layer_conv[h_layer - 1][h_neuron]) * (delta_all_h_layer[h_layer][node]))
+            temp_hl.append(temp.copy())
+            temp.clear()
+
     for i in range(len(wt_ne)):
         for j in range(len(wt_ne[i]) - 1):
-            temp_wt.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
+            temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
+        temp_ne.append(temp.copy())
+        temp.clear()
 
-    return temp_wt, delta_neuron, delta_all_h_layer
+
+    return temp_hl, temp_ne
 
 
 def delta_cal():
     print('adsf')
 
 
-def wt_update():
-    print('asdf')
+def wt_update(temp_wt, wt_hl, wt_ne, n_hidden, lr):
+    temp_ne = np.array([i for i in temp_wt[1]])
+    temp_hl = np.array([temp_wt[0][i:i+7] for i in range(0, len(temp_wt[0]), 7)])
+    wt_hl = np.array([i for i in wt_hl])
+    wt_ne = np.array([i for i in wt_ne])
+    wt_ne = wt_ne[:, 0:7]- 0.05 * temp_ne
 
 
 def epoch(data, out, hidden, neuron, split, epochs):
