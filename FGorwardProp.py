@@ -124,24 +124,40 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
             np.array(err_op_neuron) * np.array(output_final_layer) * (1 - np.array(output_final_layer))).reshape(
         len(output_final_layer), )
     temp_val = 0
+    # Loop will run  number of times we have the layer
     for h_layer in reversed(range(len(wt_hl))):
+        # For loop will run number of times we have the nodes
         for node in range(len(wt_hl[0])):
-            for h_neuron in range(len(wt_hl[0])):
+            # For loop will run number of time weights in particular node
+            for weight in range(len(wt_hl[0][node])):
                 if h_layer == (len(wt_hl) - 1):
-                    temp.append(
-                        sum(wt_ne_conv[:, node] * delta_neuron) * (output_all_layer_conv[h_layer - 1][h_neuron]) * (
-                            delta_all_h_layer[h_layer][node]))
-                else:
+                    if temp_val < 7:
+                        temp.append(
+                            sum(wt_ne_conv[:, node] * delta_neuron) * (output_all_layer_conv[h_layer - 1][weight]) * (
+                                delta_all_h_layer[h_layer][node]))
+                        temp_val = temp_val + 1
+
+                    else:
+                        temp.append(
+                            sum(wt_ne_conv[:, node] * delta_neuron) * 1 * (
+                                delta_all_h_layer[h_layer][node]))
+                        temp_val = 0
+            else:
+                if temp_val < 7:
                     temp.append(
                         sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
-                            output_all_layer_conv[h_layer - 1][h_neuron]) * (delta_all_h_layer[h_layer][node]))
-            temp_hl.append(temp.copy())
-            temp.clear()
+                            output_all_layer_conv[h_layer - 1][weight]) * (delta_all_h_layer[h_layer][node]))
+                    temp_val = temp_val + 1
+                else:
+                    temp.append(sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (1 * (delta_all_h_layer[h_layer][node])))
+                    temp_val = 0
+    temp_hl.append(temp.copy())
+    temp.clear()
 
     for i in range(len(wt_ne)):
         for j in range(len(wt_ne[i])):
             if j == (len(wt_ne[i])-1):
-                temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
+                temp.append(delta_neuron[i])
             else:
                 temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
         temp_ne.append(temp.copy())
@@ -170,7 +186,7 @@ def epoch(data, out, hidden, neuron, split, epochs):
     init_op = initialize_network(data, out, hidden, neuron, split)
     train_dat = randint(1, 3)
     for i in range(epochs):
-        print('running epoch ', i )
+        print('running epoch ', i)
         sumprod(init_op[5][train_dat], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
 
 
