@@ -75,9 +75,14 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
                     output_final_layer.append(1 / (1 + exp(-arr3)))
                 flag = 0
                 errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
+
         op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
-        wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.05)
-        wt_ne = op_back
+        updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.05)
+        wt_hl = updated_wt[1]
+        wt_ne = updated_wt[0]
+        output_all_layer.clear()
+        output_final_layer.clear()
+        err_op_neuron.clear()
 
 
 def sep_target(ttdata):
@@ -109,7 +114,7 @@ def remove_target(ttdata):
 
 def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer):
     temp_ne = []
-    temp_hl=[]
+    temp_hl = []
     temp = []
     delta_all_h_layer = np.array([[a * (1 - a) for a in i] for i in output_all_layer])
     output_all_layer_conv = np.array([i for i in output_all_layer])
@@ -134,11 +139,13 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
             temp.clear()
 
     for i in range(len(wt_ne)):
-        for j in range(len(wt_ne[i]) - 1):
-            temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
+        for j in range(len(wt_ne[i])):
+            if j == (len(wt_ne[i])-1):
+                temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
+            else:
+                temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
         temp_ne.append(temp.copy())
         temp.clear()
-
 
     return temp_hl, temp_ne
 
@@ -149,10 +156,13 @@ def delta_cal():
 
 def wt_update(temp_wt, wt_hl, wt_ne, n_hidden, lr):
     temp_ne = np.array([i for i in temp_wt[1]])
-    temp_hl = np.array([temp_wt[0][i:i+7] for i in range(0, len(temp_wt[0]), 7)])
+    temp_hl = np.array([temp_wt[0][i:i + 7] for i in range(0, len(temp_wt[0]), 7)])
+    temp_hl = np.array([np.column_stack((i, [1] * 7)) for i in temp_hl])
     wt_hl = np.array([i for i in wt_hl])
     wt_ne = np.array([i for i in wt_ne])
-    wt_ne = wt_ne[:, 0:7]- 0.05 * temp_ne
+    wt_ne = (wt_ne[:, 0:7] - 0.05 * temp_ne).tolist()
+    wt_hl = (wt_hl - 0.05 * temp_hl).tolist()
+    return wt_ne, wt_hl
 
 
 def epoch(data, out, hidden, neuron, split, epochs):
@@ -160,6 +170,7 @@ def epoch(data, out, hidden, neuron, split, epochs):
     init_op = initialize_network(data, out, hidden, neuron, split)
     train_dat = randint(1, 3)
     for i in range(epochs):
+        print('running epoch ', i )
         sumprod(init_op[5][train_dat], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
 
 
