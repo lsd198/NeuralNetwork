@@ -81,6 +81,8 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
         wt_hl = updated_wt[1]
         wt_ne = updated_wt[0]
         output_all_layer.clear()
+        print(err_total)
+        print(err_op_neuron)
         output_final_layer.clear()
         err_op_neuron.clear()
 
@@ -130,7 +132,7 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
         for node in range(len(wt_hl[0])):
             # For loop will run number of time weights in particular node
             for weight in range(len(wt_hl[0][node])):
-                if h_layer == (len(wt_hl) - 1):
+                if h_layer == 4:
                     if temp_val < 7:
                         temp.append(
                             sum(wt_ne_conv[:, node] * delta_neuron) * (output_all_layer_conv[h_layer - 1][weight]) * (
@@ -142,17 +144,17 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
                             sum(wt_ne_conv[:, node] * delta_neuron) * 1 * (
                                 delta_all_h_layer[h_layer][node]))
                         temp_val = 0
-            else:
-                if temp_val < 7:
-                    temp.append(
-                        sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
-                            output_all_layer_conv[h_layer - 1][weight]) * (delta_all_h_layer[h_layer][node]))
-                    temp_val = temp_val + 1
                 else:
-                    temp.append(sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (1 * (delta_all_h_layer[h_layer][node])))
-                    temp_val = 0
-    temp_hl.append(temp.copy())
-    temp.clear()
+                    if temp_val < 7:
+                        temp.append(
+                            sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
+                                output_all_layer_conv[h_layer - 1][weight]) * (delta_all_h_layer[h_layer][node]))
+                        temp_val = temp_val + 1
+                    else:
+                        temp.append(sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (1 * (delta_all_h_layer[h_layer][node])))
+                        temp_val = 0
+            temp_hl.append(temp.copy())
+            temp.clear()
 
     for i in range(len(wt_ne)):
         for j in range(len(wt_ne[i])):
@@ -173,10 +175,10 @@ def delta_cal():
 def wt_update(temp_wt, wt_hl, wt_ne, n_hidden, lr):
     temp_ne = np.array([i for i in temp_wt[1]])
     temp_hl = np.array([temp_wt[0][i:i + 7] for i in range(0, len(temp_wt[0]), 7)])
-    temp_hl = np.array([np.column_stack((i, [1] * 7)) for i in temp_hl])
+    # temp_hl = np.array([np.column_stack((i, [1] * 7)) for i in temp_hl])
     wt_hl = np.array([i for i in wt_hl])
     wt_ne = np.array([i for i in wt_ne])
-    wt_ne = (wt_ne[:, 0:7] - 0.05 * temp_ne).tolist()
+    wt_ne = (wt_ne - 0.05 * temp_ne).tolist()
     wt_hl = (wt_hl - 0.05 * temp_hl).tolist()
     return wt_ne, wt_hl
 
