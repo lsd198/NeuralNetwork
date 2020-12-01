@@ -4,8 +4,10 @@ from random import seed
 import numpy as np
 import pandas as pd
 from math import exp
+import matplotlib.pyplot as plt
 
 
+# Network initialization
 def initialize_network(data, n_out, n_hidden, n_neuron, split):
     len_row_data = len(data)
     wt_hl = [[[random() for i in range(len(data.columns))] for j in range(n_neuron)] for k in range(n_hidden)]
@@ -18,6 +20,7 @@ def initialize_network(data, n_out, n_hidden, n_neuron, split):
     return len_row_data, wt_hl, wt_ne, target_data, error_val, ttdata
 
 
+# Normalization of the data set
 def nor_data(dataset):
     newdata = pd.DataFrame()
     for row in dataset:
@@ -25,6 +28,7 @@ def nor_data(dataset):
     return newdata
 
 
+# splitting the data set into test and train
 def split_traintest(dataset, split):
     a = 0
     i = 0
@@ -42,6 +46,7 @@ def split_traintest(dataset, split):
     return split_data
 
 
+# Forward propagation of the weights
 def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
     # error = pd.DataFrame(,)
     output_all_layer = []
@@ -77,16 +82,19 @@ def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
                 errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
 
         op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
-        updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.05)
+        updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.25)
         wt_hl = updated_wt[1]
         wt_ne = updated_wt[0]
         output_all_layer.clear()
         print(err_total)
-        print(err_op_neuron)
+        # print(err_op_neuron)
+        err_total.clear()
         output_final_layer.clear()
         err_op_neuron.clear()
+    return err_total
 
 
+# /separating the targets
 def sep_target(ttdata):
     tg = []
     for val in ttdata:
@@ -96,6 +104,7 @@ def sep_target(ttdata):
     return tg
 
 
+# Error Calculations and stirubnf the weights in the variables
 def errorcal(i, output, error_val, target_data, err_total, err_op_neuron):
     e_list = []
     diff_list = []
@@ -110,10 +119,7 @@ def errorcal(i, output, error_val, target_data, err_total, err_op_neuron):
     err_total.append(sum(diff_list))
 
 
-def remove_target(ttdata):
-    print('')
-
-
+# back Propagation of the weights
 def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer):
     temp_ne = []
     temp_hl = []
@@ -151,14 +157,15 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
                                 output_all_layer_conv[h_layer - 1][weight]) * (delta_all_h_layer[h_layer][node]))
                         temp_val = temp_val + 1
                     else:
-                        temp.append(sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (1 * (delta_all_h_layer[h_layer][node])))
+                        temp.append(sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
+                                1 * (delta_all_h_layer[h_layer][node])))
                         temp_val = 0
             temp_hl.append(temp.copy())
             temp.clear()
 
     for i in range(len(wt_ne)):
         for j in range(len(wt_ne[i])):
-            if j == (len(wt_ne[i])-1):
+            if j == (len(wt_ne[i]) - 1):
                 temp.append(delta_neuron[i])
             else:
                 temp.append(delta_neuron[i] * output_all_layer_conv[len(wt_hl) - 1][j])
@@ -168,21 +175,19 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
     return temp_hl, temp_ne
 
 
-def delta_cal():
-    print('adsf')
-
-
+# Updating the weights
 def wt_update(temp_wt, wt_hl, wt_ne, n_hidden, lr):
     temp_ne = np.array([i for i in temp_wt[1]])
     temp_hl = np.array([temp_wt[0][i:i + 7] for i in range(0, len(temp_wt[0]), 7)])
     # temp_hl = np.array([np.column_stack((i, [1] * 7)) for i in temp_hl])
     wt_hl = np.array([i for i in wt_hl])
     wt_ne = np.array([i for i in wt_ne])
-    wt_ne = (wt_ne - 0.05 * temp_ne).tolist()
-    wt_hl = (wt_hl - 0.05 * temp_hl).tolist()
+    wt_ne = (wt_ne - lr * temp_ne).tolist()
+    wt_hl = (wt_hl - lr * temp_hl).tolist()
     return wt_ne, wt_hl
 
 
+# epoch running
 def epoch(data, out, hidden, neuron, split, epochs):
     print('inside the function of epoch')
     init_op = initialize_network(data, out, hidden, neuron, split)
@@ -192,6 +197,7 @@ def epoch(data, out, hidden, neuron, split, epochs):
         sumprod(init_op[5][train_dat], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
 
 
+# Reading the data set for the neural network
 def fileupload(filename):
     dataset = pd.read_csv(filename, header=None)
     return dataset
@@ -200,5 +206,7 @@ def fileupload(filename):
 seed(1)
 data = fileupload('datafile.csv')
 data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
-epoch(data, len(data[len(data.columns) - 1].unique()), 5, 7, 3, 500)
+# Starting of the neural network
+epoch(data, len(data[len(data.columns) - 1].unique()), 5, 7, 3, 2000)
+# a = [i for i in range(0, 500, 1)]
 # below function will initilaize the initial weights for both the hidden neurons  and output layer neurons
