@@ -6,6 +6,9 @@ import pandas as pd
 from math import exp
 import matplotlib.pyplot as plt
 
+err_total = []
+pred_output = []
+
 
 # Network initialization
 def initialize_network(data, n_out, n_hidden, n_neuron, split):
@@ -47,50 +50,58 @@ def split_traintest(dataset, split):
 
 
 # Forward propagation of the weights
-def sumprod(tr_data, wt_hl, wt_ne, n_hidden, n_neuron, error_val, target_data):
-    # error = pd.DataFrame(,)
+def forward_prop(data, out, hidden, neuron, split, epochs):
     output_all_layer = []
     err_op_neuron = []
-    err_total = []
+
     sum_act = []
     flag = 0
-    # Belo loop will run for total len of dataset
-    for i in range(len(tr_data)):
-        ar1 = np.array(list(tr_data.iloc[i]))
-        # Below loop will run for total number of hidden layer that we have
-        for l in range(n_hidden + 1):
-            if flag <= (n_hidden - 1):
-                sum_act.clear()
-                # Below code will run for total number of neuron that we have in the hidden layer
-                for k in range(n_neuron):
-                    ar2 = np.array(wt_hl[l][k])
-                    arr3 = 1 / (1 + exp(-(sum((ar1 * ar2[0:len(ar2) - 1])) + ar2[-1])))
-                    sum_act.append(arr3)
-                ar1 = np.array(sum_act)
-                output_all_layer.append(list(ar1))
-                flag = flag + 1
+    init_op = initialize_network(data, out, hidden, neuron, split)
+    tr_data = init_op[5][randint(1, split)-1]
+    wt_hl = init_op[1]
+    wt_ne = init_op[2]
+    n_hidden = hidden
+    n_neuron = neuron
+    error_val = init_op[4]
+    target_data = init_op[3][0]
+    train_dat = randint(1, 3)
+    for epc in range(epochs):
+        accuracy_matrix(epc)
+        for i in range(len(tr_data)):
+            ar1 = np.array(list(tr_data.iloc[i]))
+            # Below loop will run for total number of hidden layer that we have
+            for l in range(n_hidden + 1):
+                if flag <= (n_hidden - 1):
+                    sum_act.clear()
+                    # Below code will run for total number of neuron that we have in the hidden layer
+                    for k in range(n_neuron):
+                        ar2 = np.array(wt_hl[l][k])
+                        arr3 = 1 / (1 + exp(-(sum((ar1 * ar2[0:len(ar2) - 1])) + ar2[-1])))
+                        sum_act.append(arr3)
+                    ar1 = np.array(sum_act)
+                    output_all_layer.append(list(ar1))
+                    flag = flag + 1
 
-            else:
-                # This else part will run only for the final layer that we have  in the network
-                sum_act.clear()
-                output_final_layer = []
-                for m in range(len(wt_ne)):
-                    ar2 = np.array(wt_ne[m])
-                    arr3 = sum(ar1 * ar2[len(ar2) - 1]) + ar2[-1]
-                    output_final_layer.append(1 / (1 + exp(-arr3)))
-                flag = 0
-                errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
+                else:
+                    # This else part will run only for the final layer that we have  in the network
+                    sum_act.clear()
+                    output_final_layer = []
+                    for m in range(len(wt_ne)):
+                        ar2 = np.array(wt_ne[m])
+                        arr3 = sum(ar1 * ar2[len(ar2) - 1]) + ar2[-1]
+                        output_final_layer.append(1 / (1 + exp(-arr3)))
+                    flag = 0
+                    errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
 
-        op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
-        updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.25)
-        wt_hl = updated_wt[1]
-        wt_ne = updated_wt[0]
-        output_all_layer.clear()
-        print(err_total)
-        # print(err_op_neuron)
-        err_total.clear()
-        output_final_layer.clear()
-        err_op_neuron.clear()
+            op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
+            updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.30)
+            wt_hl = updated_wt[1]
+            wt_ne = updated_wt[0]
+            output_all_layer.clear()
+            print(err_total)
+            err_total.clear()
+            output_final_layer.clear()
+            err_op_neuron.clear()
     return err_total
 
 
@@ -116,7 +127,13 @@ def errorcal(i, output, error_val, target_data, err_total, err_op_neuron):
     for l1, l2 in zip(e_list, output):
         diff_list.append((l1 - l2) * (l1 - l2))
     err_op_neuron.append(diff_list)
+    pred_output.append((output.index(max(output))) + 1)
     err_total.append(sum(diff_list))
+
+
+def accuracy_matrix(i):
+    if i != 0:
+        print(pred_output)
 
 
 # back Propagation of the weights
@@ -187,16 +204,6 @@ def wt_update(temp_wt, wt_hl, wt_ne, n_hidden, lr):
     return wt_ne, wt_hl
 
 
-# epoch running
-def epoch(data, out, hidden, neuron, split, epochs):
-    print('inside the function of epoch')
-    init_op = initialize_network(data, out, hidden, neuron, split)
-    train_dat = randint(1, 3)
-    for i in range(epochs):
-        print('running epoch ', i)
-        sumprod(init_op[5][train_dat], init_op[1], init_op[2], hidden, neuron, init_op[4], init_op[3][0])
-
-
 # Reading the data set for the neural network
 def fileupload(filename):
     dataset = pd.read_csv(filename, header=None)
@@ -207,6 +214,6 @@ seed(1)
 data = fileupload('datafile.csv')
 data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
 # Starting of the neural network
-epoch(data, len(data[len(data.columns) - 1].unique()), 5, 7, 3, 2000)
+forward_prop(data, len(data[len(data.columns) - 1].unique()), 5, 7, 1, 4)
 # a = [i for i in range(0, 500, 1)]
 # below function will initilaize the initial weights for both the hidden neurons  and output layer neurons
