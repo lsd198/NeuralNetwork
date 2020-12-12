@@ -57,7 +57,7 @@ def forward_prop(data, out, hidden, neuron, split, epochs):
     sum_act = []
     flag = 0
     init_op = initialize_network(data, out, hidden, neuron, split)
-    tr_data = init_op[5][randint(1, split)-1]
+    tr_data = init_op[5][randint(1, split) - 1]
     wt_hl = init_op[1]
     wt_ne = init_op[2]
     n_hidden = hidden
@@ -66,7 +66,8 @@ def forward_prop(data, out, hidden, neuron, split, epochs):
     target_data = init_op[3][0]
     train_dat = randint(1, 3)
     for epc in range(epochs):
-        accuracy_matrix(epc)
+        accuracy_matrix(epc, target_data.tolist())
+        pred_output.clear()
         for i in range(len(tr_data)):
             ar1 = np.array(list(tr_data.iloc[i]))
             # Below loop will run for total number of hidden layer that we have
@@ -94,7 +95,7 @@ def forward_prop(data, out, hidden, neuron, split, epochs):
                     errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
 
             op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
-            updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.30)
+            updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.25)
             wt_hl = updated_wt[1]
             wt_ne = updated_wt[0]
             output_all_layer.clear()
@@ -131,9 +132,16 @@ def errorcal(i, output, error_val, target_data, err_total, err_op_neuron):
     err_total.append(sum(diff_list))
 
 
-def accuracy_matrix(i):
-    if i != 0:
+def accuracy_matrix(c, actual):
+    va = 0
+    if c != 0:
+        print(actual)
         print(pred_output)
+        for i in range(len(actual)):
+            if actual[i] == pred_output[i]:
+                va = va + 1
+        print('Accuray of the Neural network in epoch-->', c, ' is', (va / len(pred_output)) * 100, '%', 'len pred ',
+              len(pred_output), 'len actual ', len(actual))
 
 
 # back Propagation of the weights
@@ -214,6 +222,6 @@ seed(1)
 data = fileupload('datafile.csv')
 data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
 # Starting of the neural network
-forward_prop(data, len(data[len(data.columns) - 1].unique()), 5, 7, 1, 4)
+forward_prop(data, len(data[len(data.columns) - 1].unique()), 1, 3, 1, 1000)
 # a = [i for i in range(0, 500, 1)]
 # below function will initilaize the initial weights for both the hidden neurons  and output layer neurons
