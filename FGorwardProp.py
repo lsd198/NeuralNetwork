@@ -14,7 +14,9 @@ init_wt_ne = []
 # Network initialization
 def initialize_network(data, n_out, n_hidden, n_neuron, split):
     len_row_data = len(data)
-    wt_hl = [[[random() for i in range(len(data.columns))] for j in range(n_neuron)] for k in range(n_hidden)]
+    wt_hl = [[[random() for i in range(len(data.columns))]for k in range(n_neuron)]]
+    hl = [[[random() for i in range(n_neuron+1)] for j in range(n_neuron)] for k in range(n_hidden-1)]
+    [wt_hl.append(i) for i in hl]
     wt_ne = [[random() for i in range(n_neuron + 1)] for i in range(n_out)]
     init_wt_hl = wt_hl
     init_wt_ne = wt_ne
@@ -56,7 +58,6 @@ def split_traintest(dataset, split):
 def forward_prop(data, out, hidden, neuron, split, epochs):
     output_all_layer = []
     err_op_neuron = []
-
     sum_act = []
     flag = 0
     init_op = initialize_network(data, out, hidden, neuron, split)
@@ -139,7 +140,10 @@ def errorcal(i, output, error_val, target_data, err_total, err_op_neuron):
     for l1, l2 in zip(e_list, output):
         diff_list.append((l1 - l2) * (l1 - l2))
     err_op_neuron.append(diff_list)
-    pred_output.append((output.index(max(output))) + 1)
+    if len(set(output))==1:
+        pred_output.append(4)
+    else:
+        pred_output.append((output.index(max(output))) + 1)
     err_total.append(sum(diff_list))
 
 
@@ -157,6 +161,7 @@ def accuracy_matrix(c, actual):
 
 # back Propagation of the weights
 def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer):
+    print('BackPropagation for the first data point')
     temp_ne = []
     temp_hl = []
     temp = []
@@ -170,10 +175,13 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
     temp_val = 0
     # Loop will run  number of times we have the layer
     for h_layer in reversed(range(len(wt_hl))):
+        print('layer-->',h_layer)
         # For loop will run number of times we have the nodes
-        for node in range(len(wt_hl[0])):
+        for node in range(len(wt_hl[h_layer])):
+            print('node-->', node)
             # For loop will run number of time weights in particular node
             for weight in range(len(wt_hl[0][node])):
+                print('weight-->', weight)
                 if h_layer == len(wt_hl)-1:
                     if temp_val < len(wt_hl[0]):
                         temp.append(
