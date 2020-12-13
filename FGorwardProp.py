@@ -8,13 +8,16 @@ import matplotlib.pyplot as plt
 
 err_total = []
 pred_output = []
-
+init_wt_hl = []
+init_wt_ne = []
 
 # Network initialization
 def initialize_network(data, n_out, n_hidden, n_neuron, split):
     len_row_data = len(data)
     wt_hl = [[[random() for i in range(len(data.columns))] for j in range(n_neuron)] for k in range(n_hidden)]
     wt_ne = [[random() for i in range(n_neuron + 1)] for i in range(n_out)]
+    init_wt_hl = wt_hl
+    init_wt_ne = wt_ne
     target_data = split_traintest(data[len(data.columns) - 1], split)
     error_val = list(data[len(data.columns) - 1].unique())
     error_val.sort()
@@ -72,12 +75,19 @@ def forward_prop(data, out, hidden, neuron, split, epochs):
             ar1 = np.array(list(tr_data.iloc[i]))
             # Below loop will run for total number of hidden layer that we have
             for l in range(n_hidden + 1):
+                # Below if condition will run only for hidden layers,else will run for the last layer
                 if flag <= (n_hidden - 1):
                     sum_act.clear()
                     # Below code will run for total number of neuron that we have in the hidden layer
                     for k in range(n_neuron):
+                        print('layer-->',l, 'neuron-->', k)
                         ar2 = np.array(wt_hl[l][k])
-                        arr3 = 1 / (1 + exp(-(sum((ar1 * ar2[0:len(ar2) - 1])) + ar2[-1])))
+                        expval = (sum((ar1 * ar2[0:len(ar2) - 1])) + ar2[-1])
+                        if expval < 0:
+                            arr3 = 0
+                        else:
+                            arr3 = expval
+                        # arr3 = 1 / (1 + exp(-expval))
                         sum_act.append(arr3)
                     ar1 = np.array(sum_act)
                     output_all_layer.append(list(ar1))
@@ -95,7 +105,7 @@ def forward_prop(data, out, hidden, neuron, split, epochs):
                     errorcal(i, output_final_layer, error_val, target_data, err_total, err_op_neuron)
 
             op_back = backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output_all_layer)
-            updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.25)
+            updated_wt = wt_update(op_back, wt_hl, wt_ne, n_hidden, 0.35)
             wt_hl = updated_wt[1]
             wt_ne = updated_wt[0]
             output_all_layer.clear()
@@ -120,6 +130,7 @@ def sep_target(ttdata):
 def errorcal(i, output, error_val, target_data, err_total, err_op_neuron):
     e_list = []
     diff_list = []
+    # prepare the actual list(actual list with the correct prediction and values of the others as 0)
     for val in error_val:
         if val == target_data[i]:
             e_list.append(1)
@@ -163,8 +174,8 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
         for node in range(len(wt_hl[0])):
             # For loop will run number of time weights in particular node
             for weight in range(len(wt_hl[0][node])):
-                if h_layer == 4:
-                    if temp_val < 7:
+                if h_layer == len(wt_hl)-1:
+                    if temp_val < len(wt_hl[0]):
                         temp.append(
                             sum(wt_ne_conv[:, node] * delta_neuron) * (output_all_layer_conv[h_layer - 1][weight]) * (
                                 delta_all_h_layer[h_layer][node]))
@@ -176,7 +187,7 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
                                 delta_all_h_layer[h_layer][node]))
                         temp_val = 0
                 else:
-                    if temp_val < 7:
+                    if temp_val < len(wt_hl[0]):
                         temp.append(
                             sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
                                 output_all_layer_conv[h_layer - 1][weight]) * (delta_all_h_layer[h_layer][node]))
@@ -220,8 +231,8 @@ def fileupload(filename):
 
 seed(1)
 data = fileupload('datafile.csv')
-data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
+# data = (data.iloc[np.random.permutation(len(data))]).reset_index(drop=True)
 # Starting of the neural network
-forward_prop(data, len(data[len(data.columns) - 1].unique()), 1, 3, 1, 1000)
+forward_prop(data, len(data[len(data.columns) - 1].unique()), 5, 8, 1, 10000)
 # a = [i for i in range(0, 500, 1)]
 # below function will initilaize the initial weights for both the hidden neurons  and output layer neurons
