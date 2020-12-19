@@ -198,7 +198,7 @@ def backward_propagation(wt_hl, wt_ne, err_op_neuron, output_final_layer, output
                     if temp_val < len(wt_hl[0]):
                         temp.append(
                             sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
-                                output_all_layer_conv[h_layer - 1][weight]) * (delta_all_h_layer[h_layer][node]))
+                                output_all_layer_conv[h_layer - 1][weight]) * ( [h_layer][node]))
                         temp_val = temp_val + 1
                     else:
                         temp.append(sum(wt_hl_conv[h_layer + 1][:, node] * delta_all_h_layer[h_layer + 1]) * (
